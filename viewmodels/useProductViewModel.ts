@@ -12,11 +12,17 @@ export function useProductsViewModel() {
 
     useEffect(() => {
         let cancelled = false;
-        getCachedProducts(debouncedSearch).then((cached) => {
+
+        const loadCachedData = async () => {
+            const cached = await getCachedProducts(debouncedSearch);
+
             if (!cancelled) {
                 setCachedData(cached ?? undefined);
             }
-        });
+        };
+
+        loadCachedData();
+
         return () => {
             cancelled = true;
         };
@@ -24,7 +30,14 @@ export function useProductsViewModel() {
 
     const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
         queryKey: ['products', debouncedSearch],
-        queryFn: () => productRepository.search(debouncedSearch),
+        queryFn: async () => {
+            const [cached, apiData] = await Promise.all([
+                getCachedProducts(debouncedSearch),
+                productRepository.search(debouncedSearch),
+            ]);
+
+            return apiData ?? cached;
+        },
         placeholderData: (previousData) => previousData ?? cachedData,
     });
 
@@ -53,12 +66,19 @@ export function useProductDetailViewModel(code: string | string[] | undefined) {
             setCachedData(undefined);
             return;
         }
+
         let cancelled = false;
-        getCachedProduct(normalizedCode).then((cached) => {
+
+        const loadCachedData = async () => {
+            const cached = await getCachedProduct(normalizedCode);
+
             if (!cancelled) {
                 setCachedData(cached ?? undefined);
             }
-        });
+        };
+
+        loadCachedData();
+
         return () => {
             cancelled = true;
         };
@@ -66,8 +86,15 @@ export function useProductDetailViewModel(code: string | string[] | undefined) {
 
     const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
         queryKey: ['product', normalizedCode],
-        queryFn: () => productRepository.getByCode(normalizedCode),
         enabled: !!normalizedCode,
+        queryFn: async () => {
+            const [cached, product] = await Promise.all([
+                getCachedProduct(normalizedCode),
+                productRepository.getByCode(normalizedCode),
+            ]);
+
+            return product ?? cached;
+        },
         placeholderData: (previousData) => previousData ?? cachedData,
     });
 
