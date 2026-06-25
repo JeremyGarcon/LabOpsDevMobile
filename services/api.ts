@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { SearchResult, Product } from '../types/searchresult.type';
-import { ProductResponse } from '../../hooks/useSearch';
+import { ProductResponse } from '../types/productreponse.type';
 
 const api = axios.create({
   baseURL: 'https://world.openfoodfacts.org/api/v2/',
