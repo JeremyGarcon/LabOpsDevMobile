@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { SearchResult } from '../types/searchresult.type';
-import { Product } from '../types/product.type';
+import { SearchResult, Product } from '../types/searchresult.type';
+import { ProductResponse } from '../types/productreponse.type';
 
 const api = axios.create({
   baseURL: 'https://world.openfoodfacts.org/api/v2/',
@@ -12,7 +12,7 @@ export async function searchProducts(query: string): Promise<SearchResult> {
   return data;
 }
 
-export async function fetchProduct(): Promise<Product[]> {
- const { data } = await api.get<Product[]>('/produit');
- return data;
+export async function fetchProduct(code: string): Promise<Product> {
+  const { data } = await api.get<ProductResponse>(`product/${code}`);
+  return data.product;
 }
