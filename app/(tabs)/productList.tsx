@@ -1,56 +1,93 @@
 import { Link } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSearch } from '../../hooks/useSearch';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useProductsViewModel } from '../../viewmodels/useProductViewModel';
 
 export default function ProductList() {
-  const { data, isLoading, isError, error } = useSearch('search_terms=nutella&page_size=20');
-
-  if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator />
-      </View>
-    );
-  }
-
-  if (isError) {
-    return (
-      <View style={styles.center}>
-        <Text>Erreur : {error instanceof Error ? error.message : 'inconnue'}</Text>
-      </View>
-    );
-  }
+  const {
+    products,
+    search,
+    setSearch,
+    debouncedSearch,
+    isFetching,
+    isError,
+    error,
+    showListLoader,
+  } = useProductsViewModel();
 
   return (
-    <FlatList
-      data={data?.products ?? []}
-      keyExtractor={(item) => item.code}
-      contentContainerStyle={styles.list}
-      renderItem={({ item }) => (
-        <Link href={{ pathname: '/product/[code]', params: { code: item.code } }} asChild>
-          <Pressable style={styles.row}>
-            <Text style={styles.name}>{item.product_name || 'Sans nom'}</Text>
-            {item.brands ? <Text style={styles.brand}>{item.brands}</Text> : null}
-            {item.nutriscore_grade ? (
-              <Text style={styles.score}>Nutri-Score : {item.nutriscore_grade.toUpperCase()}</Text>
-            ) : null}
-          </Pressable>
-        </Link>
-      )}
-      ListEmptyComponent={<Text style={styles.empty}>Aucun produit</Text>}
-    />
+    <View style={styles.container}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Rechercher un produit..."
+        value={search}
+        onChangeText={setSearch}
+        returnKeyType="search"
+        clearButtonMode="while-editing"
+      />
+      {isFetching && products.length > 0 ? (
+        <ActivityIndicator style={styles.fetching} />
+      ) : null}
+      {isError && products.length === 0 ? (
+        <Text style={styles.error}>
+          Erreur : {error instanceof Error ? error.message : 'inconnue'}
+        </Text>
+      ) : null}
+      <FlatList
+        style={styles.list}
+        data={products}
+        keyExtractor={(item) => item.code}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <Link href={{ pathname: '/product/[code]', params: { code: item.code } }} asChild>
+            <Pressable style={styles.row}>
+              <Text style={styles.name}>{item.product_name || 'Sans nom'}</Text>
+              {item.brands ? <Text style={styles.brand}>{item.brands}</Text> : null}
+              {item.nutriscore_grade ? (
+                <Text style={styles.score}>Nutri-Score : {item.nutriscore_grade.toUpperCase()}</Text>
+              ) : null}
+            </Pressable>
+          </Link>
+        )}
+        ListEmptyComponent={
+          showListLoader ? (
+            <ActivityIndicator style={styles.emptyLoader} />
+          ) : (
+            <Text style={styles.empty}>
+              {debouncedSearch ? 'Aucun produit trouvé' : 'Aucun produit'}
+            </Text>
+          )
+        }
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: {
+  container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 16,
+  },
+  searchInput: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 8,
+    paddingHorizontal: 8,
+  },
+  fetching: {
+    marginBottom: 8,
+  },
+  error: {
+    color: 'red',
+    marginBottom: 8,
   },
   list: {
-    padding: 16,
+    flex: 1,
+  },
+  listContent: {
     gap: 12,
+    paddingBottom: 16,
+    flexGrow: 1,
   },
   row: {
     padding: 12,
@@ -70,6 +107,9 @@ const styles = StyleSheet.create({
   },
   empty: {
     textAlign: 'center',
+    marginTop: 32,
+  },
+  emptyLoader: {
     marginTop: 32,
   },
 });

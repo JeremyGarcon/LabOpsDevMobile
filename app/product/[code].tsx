@@ -1,12 +1,12 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useProduct } from '../../hooks/useProduct';
+import { useProductDetailViewModel } from '../../viewmodels/useProductViewModel';
 
 export default function ProductDetail() {
   const { code } = useLocalSearchParams<{ code: string }>();
-  const { data: product, isLoading, isError, error } = useProduct(code);
+  const { product, showLoader, isError, error } = useProductDetailViewModel(code);
 
-  if (isLoading) {
+  if (showLoader) {
     return (
       <View style={styles.center}>
         <ActivityIndicator />
@@ -14,10 +14,18 @@ export default function ProductDetail() {
     );
   }
 
-  if (isError || !product) {
+  if (isError && !product) {
     return (
       <View style={styles.center}>
         <Text>Erreur : {error instanceof Error ? error.message : 'produit introuvable'}</Text>
+      </View>
+    );
+  }
+
+  if (!product) {
+    return (
+      <View style={styles.center}>
+        <Text>Produit introuvable</Text>
       </View>
     );
   }
