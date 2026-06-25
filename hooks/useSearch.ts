@@ -27,9 +27,15 @@ export function useSearch(query: string) {
     return useQuery({
         queryKey: ['products', query],
         queryFn: async () => {
-            const fresh = await searchProducts(query);
-            await cacheProducts(query, fresh);
-            return fresh;
+            try {
+                const fresh = await searchProducts(query);
+                await cacheProducts(query, fresh);
+                return fresh;
+            } catch (error) {
+                const cached = await getCachedProducts(query);
+                if (cached) return cached;
+                throw error;
+            }
         },
         initialData: undefined,
         placeholderData: (previousData) => previousData ?? cachedData,
