@@ -1,4 +1,5 @@
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Link } from 'expo-router';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSearch } from '../../hooks/useSearch';
 
 export default function ProductList() {
@@ -26,13 +27,15 @@ export default function ProductList() {
       keyExtractor={(item) => item.code}
       contentContainerStyle={styles.list}
       renderItem={({ item }) => (
-        <View style={styles.row}>
-          <Text style={styles.name}>{item.product_name || 'Sans nom'}</Text>
-          {item.brands ? <Text style={styles.brand}>{item.brands}</Text> : null}
-          {item.nutriscore_grade ? (
-            <Text style={styles.score}>Nutri-Score : {item.nutriscore_grade.toUpperCase()}</Text>
-          ) : null}
-        </View>
+        <Link href={{ pathname: '/product/[code]', params: { code: item.code } }} asChild>
+          <Pressable style={styles.row}>
+            <Text style={styles.name}>{item.product_name || 'Sans nom'}</Text>
+            {item.brands ? <Text style={styles.brand}>{item.brands}</Text> : null}
+            {item.nutriscore_grade ? (
+              <Text style={styles.score}>Nutri-Score : {item.nutriscore_grade.toUpperCase()}</Text>
+            ) : null}
+          </Pressable>
+        </Link>
       )}
       ListEmptyComponent={<Text style={styles.empty}>Aucun produit</Text>}
     />
