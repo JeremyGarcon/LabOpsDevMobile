@@ -13,6 +13,6 @@ export async function searchProducts(query: string): Promise<SearchResult> {
 }
 
 export async function fetchProduct(): Promise<Product[]> {
- const { data } = await api.get<Product[]>('/produit');
+ const { data } = await api.get<Product[]>('produit');
  return data;
 }
