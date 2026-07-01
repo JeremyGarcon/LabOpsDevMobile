@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useProductsViewModel } from '../../viewmodels/useProductViewModel';
+import { getNutriscoreColor } from '../../utils/nutriscoreColors';
 
 export default function ProductList() {
   const {
@@ -66,6 +67,7 @@ export default function ProductList() {
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const uri = imageSource(item);
+          const nutriscoreColor = getNutriscoreColor(item.nutriscore_grade);
           return (
             <Link href={{ pathname: '/product/[code]', params: { code: item.code } }} asChild>
               <Pressable style={styles.row}>
@@ -82,7 +84,17 @@ export default function ProductList() {
                   <Text style={styles.name}>{item.product_name || 'Sans nom'}</Text>
                   {item.brands ? <Text style={styles.brand}>{item.brands}</Text> : null}
                   {item.nutriscore_grade ? (
-                    <Text style={styles.score}>Nutri-Score : {item.nutriscore_grade.toUpperCase()}</Text>
+                    <View style={styles.scoreContainer}>
+                      <View
+                        style={[
+                          styles.scoreIndicator,
+                          { backgroundColor: nutriscoreColor },
+                        ]}
+                      >
+                        <Text style={styles.scoreIndicatorText}>{item.nutriscore_grade.toUpperCase()}</Text>
+                      </View>
+                      <Text style={styles.scoreLabel}>Nutri-Score</Text>
+                    </View>
                   ) : null}
                 </View>
               </Pressable>
@@ -240,11 +252,29 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: 12,
   },
-  score: {
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
-    color: '#007AFF',
-    fontWeight: '600',
-    fontSize: 12,
+    gap: 6,
+  },
+  scoreIndicator: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
+    minWidth: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreIndicatorText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 11,
+  },
+  scoreLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   emptyState: {
     paddingTop: 28,
