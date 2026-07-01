@@ -8,7 +8,7 @@ export default function ProductDetail() {
 
   if (showLoader) {
     return (
-      <View style={styles.center}>
+      <View style={styles.center} accessibilityLabel="Chargement du produit" accessible>
         <ActivityIndicator />
       </View>
     );
@@ -17,7 +17,9 @@ export default function ProductDetail() {
   if (isError && !product) {
     return (
       <View style={styles.center}>
-        <Text>Erreur : {error instanceof Error ? error.message : 'produit introuvable'}</Text>
+        <Text accessibilityRole="alert">
+          Erreur : {error instanceof Error ? error.message : 'produit introuvable'}
+        </Text>
       </View>
     );
   }
@@ -25,21 +27,31 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <View style={styles.center}>
-        <Text>Produit introuvable</Text>
+        <Text accessibilityRole="alert">Produit introuvable</Text>
       </View>
     );
   }
 
   const nutriments = product.nutriments ?? {};
+  const productTitle = product.product_name || 'Sans nom';
 
   return (
     <>
-      <Stack.Screen options={{ title: product.product_name || 'Produit' }} />
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>{product.product_name || 'Sans nom'}</Text>
-        {product.brands ? <Text style={styles.brand}>{product.brands}</Text> : null}
+      <Stack.Screen options={{ title: productTitle }} />
+      <ScrollView
+        contentContainerStyle={styles.container}
+        accessibilityLabel={`Fiche produit ${productTitle}`}
+      >
+        <Text style={styles.title} accessibilityRole="header">
+          {productTitle}
+        </Text>
+        {product.brands ? (
+          <Text style={styles.brand} accessibilityLabel={`Marque ${product.brands}`}>
+            {product.brands}
+          </Text>
+        ) : null}
 
-        <View style={styles.section}>
+        <View style={styles.section} accessibilityRole="summary">
           {product.quantity ? <Info label="Quantité" value={product.quantity} /> : null}
           {product.categories ? <Info label="Catégories" value={product.categories} /> : null}
           {product.nutriscore_grade ? (
@@ -48,14 +60,21 @@ export default function ProductDetail() {
         </View>
 
         {product.ingredients_text ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ingrédients</Text>
+          <View style={styles.section} accessibilityLabel="Ingrédients">
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              Ingrédients
+            </Text>
             <Text>{product.ingredients_text}</Text>
           </View>
         ) : null}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Valeurs nutritionnelles (pour 100g)</Text>
+        <View
+          style={styles.section}
+          accessibilityLabel="Valeurs nutritionnelles pour 100 grammes"
+        >
+          <Text style={styles.sectionTitle} accessibilityRole="header">
+            Valeurs nutritionnelles (pour 100g)
+          </Text>
           <Info label="Énergie" value={fmt(nutriments['energy-kcal_100g'], 'kcal')} />
           <Info label="Matières grasses" value={fmt(nutriments.fat_100g, 'g')} />
           <Info label="dont saturées" value={fmt(nutriments['saturated-fat_100g'], 'g')} />
@@ -72,7 +91,11 @@ export default function ProductDetail() {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.infoRow}>
+    <View
+      style={styles.infoRow}
+      accessible
+      accessibilityLabel={`${label} : ${value}`}
+    >
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue}>{value}</Text>
     </View>

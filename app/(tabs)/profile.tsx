@@ -20,47 +20,91 @@ export default function ProfileScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
+      <View style={styles.centered} accessibilityLabel="Chargement du profil" accessible>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
+  const profileSummary = [
+    user?.firstName && `Prénom ${user.firstName}`,
+    user?.name && `Nom ${user.name}`,
+    user?.email && `Email ${user.email}`,
+    user?.role && `Rôle ${user.role}`,
+    user?.account_checked !== undefined &&
+      `Compte ${user.account_checked ? 'vérifié' : 'non vérifié'}`,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profil</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Profil
+      </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Prénom</Text>
-        <Text style={styles.value}>{user?.firstName || '—'}</Text>
+      <View
+        style={styles.card}
+        accessible
+        accessibilityLabel={profileSummary || 'Informations du profil non disponibles'}
+      >
+        <Text style={styles.label} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          Prénom
+        </Text>
+        <Text style={styles.value} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {user?.firstName || '—'}
+        </Text>
 
-        <Text style={styles.label}>Nom</Text>
-        <Text style={styles.value}>{user?.name || '—'}</Text>
+        <Text style={styles.label} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          Nom
+        </Text>
+        <Text style={styles.value} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {user?.name || '—'}
+        </Text>
 
-        <Text style={styles.label}>Email</Text>
-        <Text style={styles.value}>{user?.email || '—'}</Text>
+        <Text style={styles.label} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          Email
+        </Text>
+        <Text style={styles.value} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {user?.email || '—'}
+        </Text>
 
         {user?.role ? (
           <>
-            <Text style={styles.label}>Rôle</Text>
-            <Text style={styles.value}>{user.role}</Text>
+            <Text style={styles.label} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              Rôle
+            </Text>
+            <Text style={styles.value} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              {user.role}
+            </Text>
           </>
         ) : null}
 
         {user?.account_checked !== undefined ? (
           <>
-            <Text style={styles.label}>Compte vérifié</Text>
-            <Text style={styles.value}>{user.account_checked ? 'Oui' : 'Non'}</Text>
+            <Text style={styles.label} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              Compte vérifié
+            </Text>
+            <Text style={styles.value} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              {user.account_checked ? 'Oui' : 'Non'}
+            </Text>
           </>
         ) : null}
       </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text style={styles.error} accessibilityRole="alert">
+          {error}
+        </Text>
+      ) : null}
 
       <Pressable
         style={[styles.button, styles.secondaryButton, isRefreshing && styles.buttonDisabled]}
         onPress={handleRefresh}
         disabled={isRefreshing}
+        accessibilityRole="button"
+        accessibilityLabel="Rafraîchir le profil"
+        accessibilityState={{ disabled: isRefreshing, busy: isRefreshing }}
       >
         {isRefreshing ? (
           <ActivityIndicator />
@@ -73,6 +117,10 @@ export default function ProfileScreen() {
         style={[styles.button, styles.logoutButton, isLoggingOut && styles.buttonDisabled]}
         onPress={handleLogout}
         disabled={isLoggingOut}
+        accessibilityRole="button"
+        accessibilityLabel="Se déconnecter"
+        accessibilityHint="Ferme votre session"
+        accessibilityState={{ disabled: isLoggingOut, busy: isLoggingOut }}
       >
         {isLoggingOut ? (
           <ActivityIndicator color="#fff" />

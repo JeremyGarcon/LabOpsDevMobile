@@ -28,6 +28,8 @@ export default function ProductList() {
   const favorites = useFavoritesStore((s) => s.favorites);
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
 
+  const nextSortLabel = sortBy === 'name' ? 'Nutri-Score' : 'Nom';
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -37,15 +39,21 @@ export default function ProductList() {
         onChangeText={setSearch}
         returnKeyType="search"
         clearButtonMode="while-editing"
+        accessibilityRole="search"
+        accessibilityLabel="Rechercher un produit"
+        accessibilityHint="Filtre la liste par nom ou marque"
       />
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chips}
+        accessibilityRole="tablist"
+        accessibilityLabel="Filtres Nutri-Score"
       >
         <Chip
           label="Tous"
+          accessibilityLabel="Afficher tous les Nutri-Scores"
           active={nutriscoreFilter === null}
           onPress={() => setNutriscoreFilter(null)}
         />
@@ -53,6 +61,7 @@ export default function ProductList() {
           <Chip
             key={grade}
             label={grade.toUpperCase()}
+            accessibilityLabel={`Filtrer par Nutri-Score ${grade.toUpperCase()}`}
             active={nutriscoreFilter === grade}
             onPress={() => setNutriscoreFilter(nutriscoreFilter === grade ? null : grade)}
           />
@@ -62,6 +71,9 @@ export default function ProductList() {
       <Pressable
         style={styles.sortButton}
         onPress={() => setSortBy(sortBy === 'name' ? 'nutriscore' : 'name')}
+        accessibilityRole="button"
+        accessibilityLabel={`Tri actuel : ${sortBy === 'name' ? 'Nom' : 'Nutri-Score'}`}
+        accessibilityHint={`Appuyer pour trier par ${nextSortLabel}`}
       >
         <Text style={styles.sortText}>
           Tri : {sortBy === 'name' ? 'Nom' : 'Nutri-Score'}
@@ -72,7 +84,7 @@ export default function ProductList() {
         <ActivityIndicator style={styles.fetching} />
       ) : null}
       {isError && products.length === 0 ? (
-        <Text style={styles.error}>
+        <Text style={styles.error} accessibilityRole="alert">
           Erreur : {error instanceof Error ? error.message : 'inconnue'}
         </Text>
       ) : null}
@@ -81,14 +93,33 @@ export default function ProductList() {
         data={products}
         keyExtractor={(item) => item.code}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
+        accessibilityLabel="Liste des produits"
+        renderItem={({ item }) => {
+          const productName = item.product_name || 'Sans nom';
+          const isFavorite = favorites.includes(item.code);
+          const rowLabel = [
+            productName,
+            item.brands ? `marque ${item.brands}` : null,
+            item.nutriscore_grade
+              ? `Nutri-Score ${item.nutriscore_grade.toUpperCase()}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(', ');
+
+          return (
           <View style={styles.row}>
             <Link
               href={{ pathname: '/product/[code]', params: { code: item.code } }}
               asChild
             >
-              <Pressable style={styles.rowInfo}>
-                <Text style={styles.name}>{item.product_name || 'Sans nom'}</Text>
+              <Pressable
+                style={styles.rowInfo}
+                accessibilityRole="link"
+                accessibilityLabel={rowLabel}
+                accessibilityHint="Ouvre la fiche détaillée du produit"
+              >
+                <Text style={styles.name}>{productName}</Text>
                 {item.brands ? <Text style={styles.brand}>{item.brands}</Text> : null}
                 {item.nutriscore_grade ? (
                   <Text style={styles.score}>Nutri-Score : {item.nutriscore_grade.toUpperCase()}</Text>
@@ -99,16 +130,27 @@ export default function ProductList() {
               style={styles.star}
               onPress={() => toggleFavorite(item.code)}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Favoris"
+              accessibilityHint={
+                isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'
+              }
+              accessibilityState={{ selected: isFavorite }}
             >
-              <Text style={styles.starIcon}>
-                {favorites.includes(item.code) ? '★' : '☆'}
+              <Text
+                style={styles.starIcon}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              >
+                {isFavorite ? '★' : '☆'}
               </Text>
             </Pressable>
           </View>
-        )}
+          );
+        }}
         ListEmptyComponent={
           showListLoader ? (
-            <ActivityIndicator style={styles.emptyLoader} />
+            <ActivityIndicator style={styles.emptyLoader} accessibilityLabel="Chargement des produits" />
           ) : (
             <Text style={styles.empty}>
               {debouncedSearch ? 'Aucun produit trouvé' : 'Aucun produit'}
@@ -120,11 +162,24 @@ export default function ProductList() {
   );
 }
 
-function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function Chip({
+  label,
+  accessibilityLabel,
+  active,
+  onPress,
+}: {
+  label: string;
+  accessibilityLabel: string;
+  active: boolean;
+  onPress: () => void;
+}) {
   return (
     <Pressable
       style={[styles.chip, active && styles.chipActive]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ selected: active }}
     >
       <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
     </Pressable>
