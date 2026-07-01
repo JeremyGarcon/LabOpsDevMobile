@@ -1,16 +1,10 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useProductDetailViewModel } from '../../viewmodels/useProductViewModel';
-import { useFavoritesStore } from '../../stores/useFavoritesStore';
 
 export default function ProductDetail() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const { product, showLoader, isError, error } = useProductDetailViewModel(code);
-
-  // Même store Zustand que la liste : l'état favori est partagé entre les écrans.
-  const favorites = useFavoritesStore((s) => s.favorites);
-  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
-  const isFavorite = !!code && favorites.includes(code);
 
   if (showLoader) {
     return (
@@ -42,12 +36,7 @@ export default function ProductDetail() {
     <>
       <Stack.Screen options={{ title: product.product_name || 'Produit' }} />
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>{product.product_name || 'Sans nom'}</Text>
-          <Pressable onPress={() => toggleFavorite(code)} hitSlop={8}>
-            <Text style={styles.starIcon}>{isFavorite ? '★' : '☆'}</Text>
-          </Pressable>
-        </View>
+        <Text style={styles.title}>{product.product_name || 'Sans nom'}</Text>
         {product.brands ? <Text style={styles.brand}>{product.brands}</Text> : null}
 
         <View style={styles.section}>
@@ -104,20 +93,9 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
   title: {
-    flex: 1,
     fontSize: 22,
     fontWeight: '700',
-  },
-  starIcon: {
-    fontSize: 28,
-    color: '#f5a623',
   },
   brand: {
     fontSize: 16,
