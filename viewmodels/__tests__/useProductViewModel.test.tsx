@@ -35,68 +35,74 @@ const fakeResult: SearchResult = {
     ],
 };
 
-function createWrapper() {
-    // retry: false pour que les erreurs remontent immédiatement dans les tests.
-    const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } },
-    });
-
-    return ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
-}
-
 describe('useProductsViewModel', () => {
+    let queryClient: QueryClient;
+    let unmount: (() => void) | undefined;
+
+    function wrapper({ children }: { children: ReactNode }) {
+        return (
+            <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        );
+    }
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockedGetCachedProducts.mockResolvedValue(null);
+        queryClient = new QueryClient({
+            defaultOptions: {
+                queries: { retry: false, gcTime: 0 },
+            },
+        });
+    });
+
+    afterEach(() => {
+        unmount?.();
+        unmount = undefined;
+        queryClient.clear();
     });
 
     it('expose une liste vide et un loader au premier rendu', () => {
         // Requête jamais résolue => l'état de chargement persiste.
         mockedSearch.mockReturnValue(new Promise(() => {}));
 
-        const { result } = renderHook(() => useProductsViewModel(), {
-            wrapper: createWrapper(),
-        });
+        const hook = renderHook(() => useProductsViewModel(), { wrapper });
+        unmount = hook.unmount;
 
-        expect(result.current.products).toEqual([]);
-        expect(result.current.showListLoader).toBe(true);
+        expect(hook.result.current.products).toEqual([]);
+        expect(hook.result.current.showListLoader).toBe(true);
     });
 
     it('expose les produits renvoyés par le repository après une recherche', async () => {
         mockedSearch.mockResolvedValue(fakeResult);
 
-        const { result } = renderHook(() => useProductsViewModel(), {
-            wrapper: createWrapper(),
-        });
+        const hook = renderHook(() => useProductsViewModel(), { wrapper });
+        unmount = hook.unmount;
 
         act(() => {
-            result.current.setSearch('nutella');
+            hook.result.current.setSearch('nutella');
         });
 
         await waitFor(() => {
-            expect(result.current.products).toHaveLength(2);
+            expect(hook.result.current.products).toHaveLength(2);
         });
 
-        expect(result.current.products[0].product_name).toBe('Nutella');
+        expect(hook.result.current.products[0].product_name).toBe('Nutella');
         expect(mockedSearch).toHaveBeenCalledWith('nutella');
-        expect(result.current.showListLoader).toBe(false);
+        expect(hook.result.current.showListLoader).toBe(false);
     });
 
     it("remonte l'état d'erreur quand le repository échoue", async () => {
         mockedSearch.mockRejectedValue(new Error('boom'));
 
-        const { result } = renderHook(() => useProductsViewModel(), {
-            wrapper: createWrapper(),
-        });
+        const hook = renderHook(() => useProductsViewModel(), { wrapper });
+        unmount = hook.unmount;
 
         act(() => {
-            result.current.setSearch('xxx');
+            hook.result.current.setSearch('xxx');
         });
 
         await waitFor(() => {
-            expect(result.current.isError).toBe(true);
+            expect(hook.result.current.isError).toBe(true);
         });
     });
 });
