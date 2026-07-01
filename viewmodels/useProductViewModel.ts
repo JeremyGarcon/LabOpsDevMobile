@@ -1,16 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDebounce } from '../hooks/useDebounce';
 import { productRepository } from '../repositories/productrepository';
 import { getCachedProduct, getCachedProducts } from '../services/storage';
-import { NutriscoreGrade, Product, SearchResult } from '../types/searchresult.type';
-import { usePreferencesStore } from '../stores/usePreferencesStore';
-
-// Ordre Nutri-Score (a = meilleur). Les grades absents passent en fin de liste.
-const NUTRISCORE_RANK: Record<string, number> = { a: 0, b: 1, c: 2, d: 3, e: 4 };
-function nutriscoreRank(grade?: NutriscoreGrade): number {
-    return grade && grade in NUTRISCORE_RANK ? NUTRISCORE_RANK[grade] : 99;
-}
+import { Product, SearchResult } from '../types/searchresult.type';
 
 export function useProductsViewModel() {
     const [search, setSearch] = useState('');
@@ -19,11 +12,17 @@ export function useProductsViewModel() {
 
     useEffect(() => {
         let cancelled = false;
-        getCachedProducts(debouncedSearch).then((cached) => {
+
+        const loadCachedData = async () => {
+            const cached = await getCachedProducts(debouncedSearch);
+
             if (!cancelled) {
                 setCachedData(cached ?? undefined);
             }
-        });
+        };
+
+        loadCachedData();
+
         return () => {
             cancelled = true;
         };
@@ -31,30 +30,18 @@ export function useProductsViewModel() {
 
     const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
         queryKey: ['products', debouncedSearch],
-        queryFn: () => productRepository.search(debouncedSearch),
+        queryFn: async () => {
+            const [cached, apiData] = await Promise.all([
+                getCachedProducts(debouncedSearch),
+                productRepository.search(debouncedSearch),
+            ]);
+
+            return apiData ?? cached;
+        },
         placeholderData: (previousData) => previousData ?? cachedData,
     });
 
-    // Filtres globaux issus du store Zustand (partagés entre écrans).
-    const nutriscoreFilter = usePreferencesStore((s) => s.nutriscoreFilter);
-    const sortBy = usePreferencesStore((s) => s.sortBy);
-
-    const products: Product[] = useMemo(() => {
-        let result = data?.products ?? [];
-        if (nutriscoreFilter) {
-            result = result.filter((p) => p.nutriscore_grade === nutriscoreFilter);
-        }
-        if (sortBy === 'name') {
-            result = [...result].sort((a, b) =>
-                (a.product_name || '').localeCompare(b.product_name || '')
-            );
-        } else if (sortBy === 'nutriscore') {
-            result = [...result].sort(
-                (a, b) => nutriscoreRank(a.nutriscore_grade) - nutriscoreRank(b.nutriscore_grade)
-            );
-        }
-        return result;
-    }, [data, nutriscoreFilter, sortBy]);
+    const products: Product[] = data?.products ?? [];
 
     return {
         products,
@@ -79,12 +66,19 @@ export function useProductDetailViewModel(code: string | string[] | undefined) {
             setCachedData(undefined);
             return;
         }
+
         let cancelled = false;
-        getCachedProduct(normalizedCode).then((cached) => {
+
+        const loadCachedData = async () => {
+            const cached = await getCachedProduct(normalizedCode);
+
             if (!cancelled) {
                 setCachedData(cached ?? undefined);
             }
-        });
+        };
+
+        loadCachedData();
+
         return () => {
             cancelled = true;
         };
@@ -92,8 +86,15 @@ export function useProductDetailViewModel(code: string | string[] | undefined) {
 
     const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
         queryKey: ['product', normalizedCode],
-        queryFn: () => productRepository.getByCode(normalizedCode),
         enabled: !!normalizedCode,
+        queryFn: async () => {
+            const [cached, product] = await Promise.all([
+                getCachedProduct(normalizedCode),
+                productRepository.getByCode(normalizedCode),
+            ]);
+
+            return product ?? cached;
+        },
         placeholderData: (previousData) => previousData ?? cachedData,
     });
 
