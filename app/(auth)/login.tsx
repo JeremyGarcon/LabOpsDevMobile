@@ -22,7 +22,9 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Connexion</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Connexion
+      </Text>
 
       <TextInput
         style={styles.input}
@@ -32,6 +34,8 @@ export default function LoginScreen() {
         autoCapitalize="none"
         keyboardType="email-address"
         autoComplete="email"
+        accessibilityLabel="Adresse email"
+        accessibilityHint="Saisissez votre adresse email"
       />
 
       <TextInput
@@ -41,14 +45,24 @@ export default function LoginScreen() {
         onChangeText={setPassword}
         secureTextEntry
         autoComplete="password"
+        accessibilityLabel="Mot de passe"
+        accessibilityHint="Saisissez votre mot de passe"
       />
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text style={styles.error} accessibilityRole="alert">
+          {error}
+        </Text>
+      ) : null}
 
       <Pressable
         style={[styles.button, isSubmitting && styles.buttonDisabled]}
         onPress={handleSubmit}
         disabled={isSubmitting}
+        accessibilityRole="button"
+        accessibilityLabel="Se connecter"
+        accessibilityHint="Valide votre connexion"
+        accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#fff" />
@@ -58,7 +72,12 @@ export default function LoginScreen() {
       </Pressable>
 
       <Link href="/(auth)/register" asChild>
-        <Pressable style={styles.link}>
+        <Pressable
+          style={styles.link}
+          accessibilityRole="link"
+          accessibilityLabel="Créer un compte"
+          accessibilityHint="Ouvre le formulaire d'inscription"
+        >
           <Text style={styles.linkText}>Pas de compte ? S'inscrire</Text>
         </Pressable>
       </Link>

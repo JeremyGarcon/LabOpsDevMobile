@@ -29,7 +29,9 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <Text style={styles.title}>Inscription</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Inscription
+      </Text>
 
       <TextInput
         style={styles.input}
@@ -37,6 +39,7 @@ export default function RegisterScreen() {
         value={firstName}
         onChangeText={setFirstName}
         autoComplete="given-name"
+        accessibilityLabel="Prénom"
       />
 
       <TextInput
@@ -45,6 +48,7 @@ export default function RegisterScreen() {
         value={name}
         onChangeText={setName}
         autoComplete="family-name"
+        accessibilityLabel="Nom de famille"
       />
 
       <TextInput
@@ -55,6 +59,7 @@ export default function RegisterScreen() {
         autoCapitalize="none"
         keyboardType="email-address"
         autoComplete="email"
+        accessibilityLabel="Adresse email"
       />
 
       <TextInput
@@ -64,6 +69,8 @@ export default function RegisterScreen() {
         onChangeText={setPassword}
         secureTextEntry
         autoComplete="new-password"
+        accessibilityLabel="Mot de passe"
+        accessibilityHint="Au moins 8 caractères"
       />
 
       <TextInput
@@ -73,14 +80,22 @@ export default function RegisterScreen() {
         onChangeText={setConfirmPassword}
         secureTextEntry
         autoComplete="new-password"
+        accessibilityLabel="Confirmation du mot de passe"
       />
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text style={styles.error} accessibilityRole="alert">
+          {error}
+        </Text>
+      ) : null}
 
       <Pressable
         style={[styles.button, isSubmitting && styles.buttonDisabled]}
         onPress={handleSubmit}
         disabled={isSubmitting}
+        accessibilityRole="button"
+        accessibilityLabel="Créer un compte"
+        accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
       >
         {isSubmitting ? (
           <ActivityIndicator color="#fff" />
@@ -90,7 +105,12 @@ export default function RegisterScreen() {
       </Pressable>
 
       <Link href="/(auth)/login" asChild>
-        <Pressable style={styles.link}>
+        <Pressable
+          style={styles.link}
+          accessibilityRole="link"
+          accessibilityLabel="Se connecter"
+          accessibilityHint="Ouvre le formulaire de connexion"
+        >
           <Text style={styles.linkText}>Déjà un compte ? Se connecter</Text>
         </Pressable>
       </Link>
