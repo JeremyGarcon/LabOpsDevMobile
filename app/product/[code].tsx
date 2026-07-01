@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useProductDetailViewModel } from '../../viewmodels/useProductViewModel';
 
 export default function ProductDetail() {
@@ -9,7 +9,7 @@ export default function ProductDetail() {
   if (showLoader) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator />
+        <ActivityIndicator color="#007AFF" />
       </View>
     );
   }
@@ -17,7 +17,7 @@ export default function ProductDetail() {
   if (isError && !product) {
     return (
       <View style={styles.center}>
-        <Text>Erreur : {error instanceof Error ? error.message : 'produit introuvable'}</Text>
+        <Text style={styles.error}>Erreur : {error instanceof Error ? error.message : 'produit introuvable'}</Text>
       </View>
     );
   }
@@ -25,21 +25,43 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <View style={styles.center}>
-        <Text>Produit introuvable</Text>
+        <Text style={styles.error}>Produit introuvable</Text>
       </View>
     );
   }
 
   const nutriments = product.nutriments ?? {};
+  const imageUri = product.image_front_url || product.image_url || product.image_small_url || product.image_thumb_url;
 
   return (
     <>
       <Stack.Screen options={{ title: product.product_name || 'Produit' }} />
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>{product.product_name || 'Sans nom'}</Text>
-        {product.brands ? <Text style={styles.brand}>{product.brands}</Text> : null}
+        <View style={styles.heroCard}>
+          <View style={styles.imageWrap}>
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Text style={styles.imagePlaceholderText}>Photo</Text>
+              </View>
+            )}
+          </View>
 
-        <View style={styles.section}>
+          <View style={styles.heroContent}>
+            <Text style={styles.eyebrow}>Produit</Text>
+            <Text style={styles.title}>{product.product_name || 'Sans nom'}</Text>
+            {product.brands ? <Text style={styles.brand}>{product.brands}</Text> : null}
+            {product.nutriscore_grade ? (
+              <View style={styles.scoreBadge}>
+                <Text style={styles.scoreText}>Nutri-Score {product.nutriscore_grade.toUpperCase()}</Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Informations</Text>
           {product.quantity ? <Info label="Quantité" value={product.quantity} /> : null}
           {product.categories ? <Info label="Catégories" value={product.categories} /> : null}
           {product.nutriscore_grade ? (
@@ -48,13 +70,13 @@ export default function ProductDetail() {
         </View>
 
         {product.ingredients_text ? (
-          <View style={styles.section}>
+          <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Ingrédients</Text>
-            <Text>{product.ingredients_text}</Text>
+            <Text style={styles.bodyText}>{product.ingredients_text}</Text>
           </View>
         ) : null}
 
-        <View style={styles.section}>
+        <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Valeurs nutritionnelles (pour 100g)</Text>
           <Info label="Énergie" value={fmt(nutriments['energy-kcal_100g'], 'kcal')} />
           <Info label="Matières grasses" value={fmt(nutriments.fat_100g, 'g')} />
@@ -88,39 +110,117 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#f4f7fb',
   },
   container: {
     padding: 16,
     gap: 16,
+    backgroundColor: '#f4f7fb',
+    paddingBottom: 28,
+  },
+  heroCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  imageWrap: {
+    width: '100%',
+    height: 220,
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#EEF4FF',
+    marginBottom: 14,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EEF4FF',
+  },
+  imagePlaceholderText: {
+    color: '#007AFF',
+    fontWeight: '700',
+  },
+  heroContent: {
+    gap: 6,
+  },
+  eyebrow: {
+    color: '#007AFF',
+    fontWeight: '700',
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '800',
+    color: '#14213D',
   },
   brand: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: -8,
+    fontSize: 14,
+    color: '#6B7280',
   },
-  section: {
-    gap: 6,
+  scoreBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#EAF4FF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginTop: 4,
+  },
+  scoreText: {
+    color: '#007AFF',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  sectionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: '700',
+    color: '#14213D',
+    marginBottom: 8,
+  },
+  bodyText: {
+    color: '#4B5563',
+    lineHeight: 20,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#E5E7EB',
   },
   infoLabel: {
-    color: '#444',
+    color: '#6B7280',
   },
   infoValue: {
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#14213D',
+    flexShrink: 1,
+    textAlign: 'right',
+  },
+  error: {
+    color: '#D64545',
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
