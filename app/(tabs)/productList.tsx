@@ -29,13 +29,13 @@ export default function ProductList() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.header} accessible accessibilityLabel={`Catalogue, ${products.length} produits`}>
         <View style={styles.headerContent}>
-          <Text style={styles.eyebrow}>Catalogue</Text>
-          <Text style={styles.title}>Trouvez vos produits</Text>
+          <Text style={styles.eyebrow} accessibilityRole="header">Catalogue</Text>
+          <Text style={styles.title} accessibilityRole="header">Trouvez vos produits</Text>
           <Text style={styles.subtitle}>Parcourez les produits et leurs infos nutritionnelles.</Text>
         </View>
-        <View style={styles.badge}>
+        <View style={styles.badge} accessible accessibilityLabel={`${products.length} produits disponibles`}>
           <Text style={styles.badgeText}>{products.length}</Text>
         </View>
       </View>
@@ -49,11 +49,14 @@ export default function ProductList() {
           returnKeyType="search"
           clearButtonMode="while-editing"
           placeholderTextColor="#8E9AAF"
+          accessible
+          accessibilityLabel="Recherche"
+          accessibilityHint="Saisissez le nom d'un produit à rechercher"
         />
       </View>
 
       {isFetching && products.length > 0 ? (
-        <ActivityIndicator style={styles.fetching} color="#007AFF" />
+        <ActivityIndicator style={styles.fetching} color="#007AFF" accessible accessibilityLabel="Chargement des résultats" />
       ) : null}
 
       {isError && products.length === 0 ? (
@@ -70,12 +73,18 @@ export default function ProductList() {
           const nutriscoreColor = getNutriscoreColor(item.nutriscore_grade);
           return (
             <Link href={{ pathname: '/product/[code]', params: { code: item.code } }} asChild>
-              <Pressable style={styles.row}>
+              <Pressable
+                style={styles.row}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel={`${item.product_name || 'Produit'} - ${item.brands || ''}`.trim()}
+                accessibilityHint="Ouvre la fiche produit"
+              >
                 <View style={styles.imageWrap}>
                   {uri ? (
-                    <Image source={{ uri }} style={styles.image} resizeMode="cover" />
+                    <Image source={{ uri }} style={styles.image} resizeMode="cover" accessible accessibilityLabel={`${item.product_name || 'Produit'} image`} />
                   ) : (
-                    <View style={styles.imagePlaceholder}>
+                    <View style={styles.imagePlaceholder} accessible accessibilityLabel="Image indisponible">
                       <Text style={styles.imagePlaceholderText}>Photo</Text>
                     </View>
                   )}
@@ -90,6 +99,8 @@ export default function ProductList() {
                           styles.scoreIndicator,
                           { backgroundColor: nutriscoreColor },
                         ]}
+                        accessible
+                        accessibilityLabel={`Nutri-Score ${item.nutriscore_grade.toUpperCase()}`}
                       >
                         <Text style={styles.scoreIndicatorText}>{item.nutriscore_grade.toUpperCase()}</Text>
                       </View>
@@ -103,12 +114,14 @@ export default function ProductList() {
         }}
         ListEmptyComponent={
           showListLoader ? (
-            <ActivityIndicator style={styles.emptyLoader} color="#007AFF" />
+            <ActivityIndicator style={styles.emptyLoader} color="#007AFF" accessible accessibilityLabel="Chargement des produits" />
           ) : (
             <View style={styles.emptyState}>
-              <Text style={styles.empty}>
-                {debouncedSearch ? 'Aucun produit trouvé' : 'Aucun produit'}
-              </Text>
+              <View accessible accessibilityLabel={debouncedSearch ? 'Aucun produit trouvé' : 'Aucun produit'}>
+                <Text style={styles.empty}>
+                  {debouncedSearch ? 'Aucun produit trouvé' : 'Aucun produit'}
+                </Text>
+              </View>
             </View>
           )
         }

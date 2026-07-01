@@ -11,7 +11,7 @@ export default function ProductDetail() {
 
   if (showLoader) {
     return (
-      <View style={styles.center}>
+      <View style={styles.center} accessibilityLabel="Chargement du produit" accessible>
         <ActivityIndicator color="#007AFF" />
       </View>
     );
@@ -20,7 +20,8 @@ export default function ProductDetail() {
   if (isError && !product) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>Erreur : {error instanceof Error ? error.message : 'produit introuvable'}</Text>
+        <Text style={styles.error} accessibilityRole="alert" >
+          Erreur : {error instanceof Error ? error.message : 'produit introuvable'}</Text>
       </View>
     );
   }
@@ -28,7 +29,7 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>Produit introuvable</Text>
+        <Text style={styles.error} accessibilityRole="alert">Produit introuvable</Text>
       </View>
     );
   }
@@ -37,12 +38,13 @@ export default function ProductDetail() {
   const imageUri = product.image_front_url || product.image_url || product.image_small_url || product.image_thumb_url;
   const nutriscoreColor = getNutriscoreColor(product.nutriscore_grade);
   const nutriscoreBgColor = getNutriscoreBgColor(product.nutriscore_grade);
+  const productTitle = product.product_name || 'Produit';
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: product.product_name || 'Produit',
+          title: productTitle,
           headerLeft: () => (
             <Pressable
               onPress={() => router.back()}
@@ -50,19 +52,28 @@ export default function ProductDetail() {
                 styles.backButton,
                 pressed && styles.backButtonPressed,
               ]}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Retour"
             >
               <BackArrowIcon />
             </Pressable>
           ),
         }}
       />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} accessibilityLabel={`Fiche produit ${productTitle}`}>
         <View style={styles.heroCard}>
           <View style={styles.imageWrap}>
             {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+              <Image
+                source={{ uri: imageUri }}
+                style={styles.image}
+                resizeMode="cover"
+                accessible
+                accessibilityLabel={`${productTitle} image`}
+              />
             ) : (
-              <View style={styles.imagePlaceholder}>
+              <View style={styles.imagePlaceholder} accessible accessibilityLabel="Image indisponible">
                 <Text style={styles.imagePlaceholderText}>Photo</Text>
               </View>
             )}
@@ -73,7 +84,11 @@ export default function ProductDetail() {
             <Text style={styles.title}>{product.product_name || 'Sans nom'}</Text>
             {product.brands ? <Text style={styles.brand}>{product.brands}</Text> : null}
             {product.nutriscore_grade ? (
-              <View style={[styles.scoreBadge, { backgroundColor: nutriscoreBgColor }]}>
+              <View
+                style={[styles.scoreBadge, { backgroundColor: nutriscoreBgColor }]}
+                accessible
+                accessibilityLabel={`Nutri-Score ${product.nutriscore_grade.toUpperCase()}`}
+              >
                 <Text style={[styles.scoreText, { color: nutriscoreColor }]}>
                   Nutri-Score {product.nutriscore_grade.toUpperCase()}
                 </Text>
@@ -87,9 +102,9 @@ export default function ProductDetail() {
           {product.quantity ? <Info label="Quantité" value={product.quantity} /> : null}
           {product.categories ? <Info label="Catégories" value={product.categories} /> : null}
           {product.nutriscore_grade ? (
-            <View style={styles.infoRow}>
+            <View style={styles.infoRow} accessible accessibilityLabel={`Nutri-Score : ${product.nutriscore_grade.toUpperCase()}`}>
               <Text style={styles.infoLabel}>Nutri-Score</Text>
-              <View style={[styles.scoreIndicator, { backgroundColor: nutriscoreColor }]}>
+              <View style={[styles.scoreIndicator, { backgroundColor: nutriscoreColor }]} accessible accessibilityLabel={product.nutriscore_grade.toUpperCase()}>
                 <Text style={styles.scoreIndicatorText}>{product.nutriscore_grade.toUpperCase()}</Text>
               </View>
             </View>
