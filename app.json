@@ -17,7 +17,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.jeremy2003.app_mobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -25,6 +26,19 @@
     "plugins": [
       "expo-router",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "98c81de7-91a6-4306-97e6-8336483753eb"
+      }
+    },
+    "owner": "jeremy2003",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/98c81de7-91a6-4306-97e6-8336483753eb"
+    }
   }
 }
